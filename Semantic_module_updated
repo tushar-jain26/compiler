@@ -1,0 +1,77 @@
+/**********************************************************
+Program to construct Toy Compiler
+***********************************************************/
+
+
+import java.util.*;
+import java.util.regex.*;
+import java.io.*;
+
+class ToyCompiler {
+	static String input;
+	static List<String> tokenList;
+	static String[] tokens;
+	static int ptr;
+	static List<String> floatVariables;
+	static List<String> intVariables;
+	static Map<Integer, String> variableMap;
+	static int expressionType;
+	static int ctr;
+	
+	public static void main(String args[]) throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("input.txt")));
+		floatVariables = new LinkedList<>();
+		intVariables = new LinkedList<>();
+		variableMap = new HashMap<>();
+		ctr = 0;
+		while((input = br.readLine()) != null) {
+			System.out.println(input);
+			lexicalAnalysis();
+			syntacticAnalysis();
+			semanticAnalysis();
+		}
+	}
+
+/**********************************************************
+semanticAnalysis() function will perform the semantic Analysis
+on the tokens.It will calculate the type and expressionType, if 
+type and expressionType is equal to 1,it will assign string to
+int, else it will assign float value. Then on the basis of the
+type and expressionType it will display the message. If both 
+type and expressionType is same i.e both are of same type, it will
+display the message "This is valid". If the type < expressionType,
+it means it is not valid because both are not of same type and will 
+print the message "This is invalid". And at the last it will check
+type > expressionType, it means it is valid but need some work i.e.
+typecasting, so it will print the message of typecasting.
+
+***********************************************************/
+
+	
+	
+	
+	static void semanticAnalysis() {
+		if(tokens[0].contains("KEY")) {
+			int type = Integer.parseInt(tokens[0].substring(tokens[0].length()-1, tokens[0].length()));// calculating type
+			String s1, s2;
+			if(type == 1) {
+				s1 = "int";
+			} else {
+				s1 = "float";
+			}
+			if(expressionType == 1) {
+				s2 = "int";
+			} else {
+				s2 = "float";
+			}
+			System.out.println("We are trying to assign " + s2 + " to " + s1 + ".");
+			if(type == expressionType) {                   //if both are same
+				System.out.println("This is valid.");
+			} else if(type < expressionType) {            // if type < expressionType
+				System.out.println("This is invalid.");
+			} else {                                      // if type > expressionType
+				System.out.println("We will typecast " + s2 + " to " + s1 + ".");
+			}
+		}
+	}
+}
