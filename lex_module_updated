@@ -1,0 +1,450 @@
+//functions used in lexical analysis
+void   Open_File();
+void   Demage_Lexeme();
+int    Search(char[256],int);
+void   analyze();
+void   Skip_Comment();
+void   Read_String();
+void   Is_Keyword_Or_Not();
+void   Is_Identifier_Or_Not();
+void   Is_Operator_Or_Not();
+void   Read_Number();
+void   Is_Special_Or_Not();
+void   Is_Comparison_Or_Not();
+void   Add_To_Lexical (char[256],int,char[256]);
+void   Print_ST();
+void   Print_TOKEN();
+void   Token_Attribute();
+
+
+/**********************************************************
+creating the structure which will help in lexical analysis.
+In the strucute, there is data element which will help in 
+storing the value of token. Line element will store the type 
+of token appear in the input. 'Times' element will store the no.
+of times token appear in the input. 'Type' elemet will store the
+type of the token.
+***********************************************************/
+
+
+
+
+struct lexical                   //creating the structure
+{
+    char    data[256];          //Value of token.
+    int     line[256];          //Line # which token appear in input 
+file.
+    int     times;              //# of times that token appear in input
+file.
+    char    type[256];           //Type of each token.
+    struct  lexical *next;      // next pointer
+};
+
+typedef struct lexical Lex;
+typedef Lex *lex;
+
+/**********************************************************
+File pointer for accessing the file.
+***********************************************************/
+
+FILE *fp;
+FILE *st;
+FILE *token;
+char lexeme[256],ch;
+int f,flag,line=1,i=1;
+lex head=NULL,tail=NULL;
+
+/***********************************************************
+Here we are declaring the keywords[] array.Array holding all 
+keywords for checking.keywords[] array is holding all the 
+keyword which needs to be check in compiler.
+***********************************************************/
+
+char 
+*keywords[]={"procedure","is","begin","end","var","cin","cout","if",
+		  "then","else","and","or","not","loop","exit","when",
+		  "while","until"};
+
+/************************************************************
+Here we are declaring the arithmetic_operator[] array. Array 
+holding all arithmetic operations for checking.
+************************************************************/
+
+char arithmetic_operator[]={'+','-','*','/'};
+
+/************************************************************
+Here we are declaring the comparison_operator[] array. Array 
+holding all comparison operations for checking.
+************************************************************/
+
+char *comparison_operator[]={"<",">","=","<=","<>",">="};
+
+/************************************************************
+Here we are declaring the special[] array. Array holding all
+special for checking.
+************************************************************/
+
+char special[]={'%','!','@','~','$'};
+
+/************************************************************
+
+			**************
+			*MAIN PROGRAM*
+		   lexical analysis
+			**************
+
+************************************************************/
+
+void main()
+{
+  Open_File();  //calling the Open_File function
+  analyze();   //calling the analyze function
+  fclose(fp);  // closing the file  
+  Print_ST();  // calling the Print_ST function
+  Print_TOKEN(); // printing tokens
+}
+
+/***********************************************************
+The Open_File() function is used to open input source file 
+i.e. 'source.txt'.The if condition is used to check whether file
+is having content or not.If the condition is true, then it will
+print the message '!!!Can't open input file - source.txt!!!'
+
+************************************************************/
+
+void Open_File()
+{
+
+  fp=fopen("source.txt","r");   //provide path for source.txt here
+  if(fp==NULL)
+  {
+	printf("!!!Can't open input file - source.txt!!!");
+	getch();
+	exit(0);
+  }
+}
+
+/***********************************************************
+Function Add_To_Lexical() is used to add item to structure of
+array to store data and information of lexical items.Here if()
+function will return 1 when token not found. malloc() is used to 
+allocate the space of lex and then storing it in new_lex.
+***********************************************************/
+
+void Add_To_Lexical (char value[256],int line,char type[256])
+{
+	lex new_lex;
+
+	if (!Search(value,line))    //When return 1 the token not found.
+	{
+
+	  new_lex=malloc(sizeof(Lex));
+
+	  if (new_lex!=NULL)
+	  {
+		strcpy(new_lex->data,value);
+		new_lex->line[0]=line;
+		new_lex->times=1;
+		strcpy(new_lex->type,type);
+		new_lex->next=NULL;
+
+		if (head==NULL)
+		   head=new_lex;
+		else
+		   tail->next=new_lex;
+
+		tail=new_lex;
+	  }
+	}
+}
+
+/***********************************************************
+Here search() function is used to search token. if the search
+is successful then it will update the flag value from 0 to 1.
+and return the flag value, if flag returns to 0 it means token 
+not found, and if flag returns to 1 it means token found.
+***********************************************************/
+
+int Search (char value[256],int line)
+{
+  lex x=head;
+  int flag=0;
+
+  while (x->next!=NULL && !flag)
+  {
+    if (strcmp(x->data,value)==0)
+    {
+      x->line[x->times]=line;
+      x->times++;
+      flag=1;
+    }
+    x=x->next;
+  }
+  return flag;
+}
+
+/************************************************************
+Here Print_ST() function is uses to print the ST.TXT . first
+it will check whether the text file has data or not, if file 
+is empty it will print the 'the file ST.TXT can not open' else
+it will print the line,lexeme and type(num,keyword,identifier) 
+and in the end it will close the file.
+*************************************************************/
+
+void Print_ST()
+{
+  lex x=head;
+  int j;
+
+  if ((st=fopen("ST.TXT","w"))==NULL)
+      printf("The file ST.TXT can not open. 
+");
+
+  else
+
+  {
+    System.out.println(st,"	 %s 	    %s 	 %s 
+","Line#","Lexeme","Type");
+    System.out.println(st,"	 ---- 	    ------ 	 ---- 
+");
+
+    while (x!=NULL)
+    {
+      if ((strcmp(x->type,"num")==0)         ||
+	 (strcmp(x->type,"keyword")==0)      ||
+	 (strcmp(x->type,"identifier")==0))
+      {
+	 System.out.println(st,"	 ");
+
+	 for (j=0;j<x->times;j++)
+	 {
+	   System.out.println(st,"%d",x->line[j]);
+		if (j!=x->times-1)      //This condition to prevent the comma
+	   System.out.println(st,",",x->line[j]);  //"," to not print after last line #.
+	 }
+
+	System.out.println(st,"	    %-6s   	%-6s 
+",x->data,x->type);
+      }
+      x=x->next;
+    }
+
+    fclose(st);
+  }
+}
+
+/***********************************************************
+Here Print_TOKEN() Functionis used to print the TOKENS.TXT . 
+first it will open the file and then check whether it will be
+able to open the input file or not. In case file content is 
+null it will display the message "!!!Can't open input file - source.txt!!!"
+else then chechk whether the Token.txt fill is having content
+or not, in case the token fill is also null, it will display 
+the message "The file ST.TXT cat not open. " ekse it will
+print all the tokens.
+***********************************************************/
+
+void Print_TOKEN()
+{
+  int flag=0;
+
+  fp=fopen("source.txt","r");
+
+    if(fp==NULL)
+    {
+       printf("!!!Can't open input file - source.txt!!!");
+       getch();
+       exit(0);
+    }
+
+  else
+
+    {
+	if ((token=fopen("TOKENS.TXT","w"))==NULL)
+	  printf("The file ST.TXT cat not open. ");
+
+      else
+
+      {
+	ch=fgetc(fp);
+
+	while (!(feof(fp)))
+	{
+
+	  if (ch==' ' && !flag)
+	  {
+	    do
+	      ch=fgetc(fp);
+	    while (ch==' ');
+
+	    fseek(fp,-2,1);
+	    ch=fgetc(fp);
+	    flag=1;
+	  }
+
+	  if (ch!='
+' && ch!='	')
+	    System.out.println(token,"%c",ch);
+
+	  if (ch=='
+')
+	  {
+	    System.out.println(token,"
+");
+	    Token_Attribute();
+	    i++;
+	    flag=0;
+	  }
+
+	  ch=fgetc(fp);
+	}
+      }
+    }
+    fclose(fp);
+    fclose(token);
+}
+
+/***********************************************************
+Here Token_Attribute()Function is useed to put the token and
+atrribute in TOKENS.TXT . This function will print the attribute
+of tokens along with the line by checking the condition according
+to its type.
+************************************************************/
+
+void Token_Attribute()
+{
+  lex x=head;
+  int j;
+
+  while (x!=NULL)
+  {
+    if (x->line[0]==i)
+    {
+      System.out.println(token,"token : %-4s	",x->type);
+
+      if ((strcmp(x->type,"num")==0)         ||
+	 (strcmp(x->type,"keyword")==0)      ||
+	 (strcmp(x->type,"identifier")==0))
+
+      {
+	  System.out.println(token,"attribute : line#=%-4d 
+",i);
+      }
+
+      else
+
+      {
+	  System.out.println(token,"attribute : %-4s 
+",x->data);
+      }
+
+    }
+    x=x->next;
+  }
+  System.out.println(token,"
+");
+}
+
+/**********************************************************
+Here the analyze() Function is used to create lexical analysis.
+Fist it will the read the character. while loop will work till 
+the end of the file. Inside the while loop if condition is 
+used to calculate the no. of lines in source.txt. If special condition
+is used to avoid the comments and then the operations will perform 
+on the character. If the character is letter it will call -
+Read_String(),Is_Keyword_Or_Not(),Is_Operator_Or_Not(),
+Is_Identifier_Or_Not() methods, and if the character is digit it will call
+Read_Number() method and if special character found it will Add_To_Lexical()
+accordingly.
+***********************************************************/
+
+void analyze()
+{
+
+  ch=fgetc(fp);                      //Read character.
+
+  while(!feof(fp))                   //While the file is not end.
+  {
+
+      if(ch=='
+')                   //Compute # of lines in source.txt 
+.
+	  {
+	    line++;
+	    ch=fgetc(fp);
+	  }
+
+      if(isspace(ch) && ch=='
+' )
+      {
+	  line++;
+	  ch=fgetc(fp);
+      }
+      if(isspace(ch) && ch!='
+' )          //The character is space.
+	  ch=fgetc(fp);
+
+
+      if(ch=='/' || ch=='"')    //Function for skipping comments in the
+file
+	  Skip_Comment();	//and '"' with display statements.
+
+
+      if(isalpha(ch))              //The character is leter.
+	{
+	    Read_String();
+	    Is_Keyword_Or_Not();
+	    Is_Operator_Or_Not();
+	    Is_Identifier_Or_Not();
+	}
+
+
+      if(isdigit(ch))             //The character is digit.
+	 Read_Number();
+
+
+      if (ch==';')                //The character is semicolon.
+	Add_To_Lexical(";",line,"semicolon");
+
+
+      if (ch==':')                //The character is colon.
+	Add_To_Lexical(":",line,"colon");
+
+
+      if (ch==',')                //The character is comma.
+	Add_To_Lexical(",",line,"comma");
+
+
+      if (ch=='(')                //The character is parenthesis.
+	Add_To_Lexical("(",line,"parenthesis");
+
+
+      if (ch==')')                //The character is parenthesis.
+	Add_To_Lexical(")",line,"parenthesis");
+
+				 //The character is comparison_operator
+      if (ch=='<' || ch=='=' || ch=='>')
+	Is_Comparison_Or_Not();
+
+
+      Is_Special_Or_Not();       //After failed scaning in before cases
+				 //check the character is special or not.
+      Demage_Lexeme();
+
+      if(isspace(ch) && ch=='
+' )
+      {
+	  line++;
+	  ch=fgetc(fp);
+      }
+      else
+      ch=fgetc(fp);
+  }
+}
+
+
+
+
+
+
+	
