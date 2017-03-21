@@ -15,7 +15,7 @@ Team Members-2
 1. Tushar Jain
 Github- https://github.com/tushar-jain26/compiler.git
 2. Yashika Khurana
-Github- https://github.com/yashikakhurana/compiler.git
+Github- https://github.com/yashikakhurana/compiler_1.git
 
 The project has been developed using certain tools, functions , IDE's etc.
 The following have been mentioned below:
